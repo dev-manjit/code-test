@@ -1,6 +1,6 @@
 ## Description
-## A notification Lambda function read messages from text file which uploaded in S3bucket, send each message to a SQS queue, and Text file if operation is success
-    and another function store them into a DynamoDB table, then removes them from the SQS queue
+# A notification Lambda function read messages from text file which uploaded in S3bucket, send each message to a SQS queue, and Text file if operation is success
+# and another function store them into a DynamoDB table, then removes them from the SQS queue
 
 This pattern creates one S3 bucket,a SQS queue, a Lambda function and a DynamoDB table using SAM and Java 11.
 
@@ -16,8 +16,6 @@ The framework used to deploy the infrastructure is SAM
 The AWS services used in this pattern are
 #### AWSS3 - AWS Lambda - Amazon SQS - DynamoDB
 
-
-## Description
 The SAM template contains all the information to deploy AWS resources(one S3 bucket, one Lambda function, one SQS queue and one DynamoDB table)
 and also the permission required by these service to communicate.
 
