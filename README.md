@@ -1,5 +1,6 @@
 ## Description
-## A Lambda function read messages from text file which uploaded in  S3bucket, and send each message to a SQS queue, store them into a DynamoDB table, then removes them from the SQS queue and Text file if operation is success
+## A notification Lambda function read messages from text file which uploaded in S3bucket, send each message to a SQS queue, and Text file if operation is success
+    and another function store them into a DynamoDB table, then removes them from the SQS queue
 
 This pattern creates one S3 bucket,a SQS queue, a Lambda function and a DynamoDB table using SAM and Java 11.
 
@@ -31,9 +32,8 @@ This is fully functional example developed in Java 11.
 ````
 mvn clean package
 
-# create an S3 bucket where the source code will be stored:
+# create an S3 bucket((please use another bucket name, if it is already used)  where the source code will be stored:
 aws s3 mb s3://bucket9999codetest
-
 # copy the source code located in the target folder:
 aws s3 cp target/sourceCode.zip s3://bucket9999codetest
 
@@ -45,25 +45,26 @@ sam deploy --s3-bucket bucket9999codetest --stack-name stack9999codetest --capab
 ## Testing
 
 Upload text file(vehicle-model.tx at root of code-test project) to Amazon S3>Buckets>sourceconfigbck
-
-you can verify the change with AWS managenment consdole
+````
+you can verify the change with AWS managenment consdole(login with same account)
 
    Logs: CloudWatch>Log groups>/aws/lambda/DataParser for file reading, sending msg to queue, delete file from s3bucket
          CloudWatch>Log groups>/aws/lambda/DataProcessor processing the queue msg, delete msg, Dynamodb saving as entity model
     DB:  DynamoDB> VehicleModel ,see vehicle model and count, first upload: volvo(2),Renault(1)
     Bucket: S3>Buckets>sourceconfigbck , deleted the file after parsing the text
-    Lambda montior
-    SQS
+    Lambda montior : Lambda>Functions>DataProcessor>montior,  Lambda>Functions>DataParser>montior
+    SQS > Amazon SQS>Queues>MessageQueue
 
 To test the endpoint first send data using the following command. Be sure to update the endpoint with endpoint of your stack.
 
 ```
+#Testing from CLI
 # first send a few messages to the SQS queue
 aws sqs send-message --queue-url https://sqs.YOUR_AWS_REGION.amazonaws.com/YOUR_AWS_ACCOUNT/MessageQueue --message-body '{"modelId":"volvo"}'
-aws sqs send-message --queue-url https://sqs.YOUR_AWS_REGION.amazonaws.com/YOUR_AWS_ACCOUNT/MessageQueue --message-body '{"orderId":"BMW"}'
+aws sqs send-message --queue-url https://sqs.YOUR_AWS_REGION.amazonaws.com/YOUR_AWS_ACCOUNT/MessageQueue --message-body '{"modelId":"BMW"}'
 
 # scan the dynamodb table
-aws dynamodb scan --table-name OrdersTable
+aws dynamodb scan --table-name VehicleModel
 
 ```
 
@@ -89,4 +90,5 @@ aws s3 rb s3://bucket9999codetest
 
 ## Author bio
 Name: Manjit
-
+Linkedin: https://www.linkedin.com/in/manjitdev/
+Description: Software Engineer
