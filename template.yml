@@ -1,0 +1,80 @@
+AWSTemplateFormatVersion: 2010-09-09
+Transform: AWS::Serverless-2016-10-31
+Description: sqs-lambda-dynamodb
+
+Globals:
+  Function:
+    Runtime: java11
+    MemorySize: 512
+    Timeout: 25
+
+Resources:
+  DataParser:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: DataParser
+      Handler: com.example.DataParser::handleRequest
+      CodeUri: target/sourceCode.zip
+      Policies:
+        - AmazonSQSFullAccess
+        - AmazonS3FullAccess
+      Environment:
+        Variables:
+          SOURCE_BUCKET: sourceconfigbck
+          QUEUE_URL: !Sub 'https://sqs.${AWS::Region}.amazonaws.com/${AWS::AccountId}/MessageQueue'
+          REGION: !Sub '${AWS::Region}'
+      Events:
+        FileUpload:
+          Type: S3
+          Properties:
+            Bucket: !Ref sourceconfigbck
+            Events: s3:ObjectCreated:*
+            Filter:
+              S3Key:
+                Rules:
+                  - Name: suffix
+                    Value: '.txt'
+
+  sourceconfigbck:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: sourceconfigbck
+
+  DataProcessor:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: DataProcessor
+      Handler: com.example.DataProcessor::handleRequest
+      CodeUri: target/sourceCode.zip
+      Events:
+        OrderSQSEvent:
+          Type: SQS
+          Properties:
+            Queue: !GetAtt MessageQueue.Arn
+      Environment:
+        Variables:
+          QUEUE_URL: !Sub 'https://sqs.${AWS::Region}.amazonaws.com/${AWS::AccountId}/MessageQueue'
+          REGION: !Sub '${AWS::Region}'
+          TABLE_NAME: !Ref VehicleModelTable
+      Policies:
+        - AWSLambdaSQSQueueExecutionRole
+        - AmazonDynamoDBFullAccess
+
+  MessageQueue:
+    Type: AWS::SQS::Queue
+    Properties:
+      QueueName: MessageQueue
+
+  VehicleModelTable:
+    Type: 'AWS::DynamoDB::Table'
+    Properties:
+      TableName: VehicleModel
+      AttributeDefinitions:
+        - AttributeName: modelId
+          AttributeType: S
+      KeySchema:
+        - AttributeName: modelId
+          KeyType: HASH
+      ProvisionedThroughput:
+        ReadCapacityUnits: 5
+        WriteCapacityUnits: 5
