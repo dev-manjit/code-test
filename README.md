@@ -1,6 +1,5 @@
 ## Description
-# A notification Lambda function read messages from text file which uploaded in S3bucket, send each message to a SQS queue, and Text file if operation is success
-# and another function store them into a DynamoDB table, then removes them from the SQS queue
+A notification Lambda function read messages from text file which uploaded in S3bucket, send each message to a SQS queue, and delete Text file if operation is success and another function store them into a DynamoDB table, then removes them from the SQS queue
 
 This pattern creates one S3 bucket,a SQS queue, a Lambda function and a DynamoDB table using SAM and Java 11.
 
